@@ -3,6 +3,7 @@ const meter = start('todo-service');
 import express from 'express';
 import axios from 'axios';
 const app = express();
+import opentelemetry from "@opentelemetry/api";
 
 import Redis from "ioredis";
 import { api } from '@opentelemetry/sdk-node';
@@ -48,11 +49,11 @@ app.get('/todos', async (req, res) => {
         } catch (e : any) {
             const activespan = api.trace.getSpan(api.context.active());
             activespan?.recordException(e);
-            console.error('Really bad error!'),{
+            console.error('Really bad error!',{
                 SpanId:activespan?.spanContext().spanId,
                 traceId:activespan?.spanContext().traceId,
                 traceFlag:activespan?.spanContext().traceFlags
-            };
+            });
             res.sendStatus(500);
             return ;
         }
@@ -68,11 +69,16 @@ app.listen(8080, () => {
 
 
 async function init() {
-    await Promise.all([
-        redis.set('todo:1', JSON.stringify({ name: 'Install OpenTelemetry SDK' })),
-        redis.set('todo:2', JSON.stringify({ name: 'Deploy OpenTelemetry Collector' })),
-        redis.set('todo:3', JSON.stringify({ name: 'Configure sampling rule' })),
-        redis.set('todo:4', JSON.stringify({ name: 'You are OpenTelemetry master!' }))]
-    );
+    opentelemetry.trace.getTracer('init').startActiveSpan('Set default items', async (span) => {
+        // Application code goes here
+        await Promise.all([
+            redis.set('todo:1', JSON.stringify({ name: 'Install OpenTelemetry SDK' })),
+            redis.set('todo:2', JSON.stringify({ name: 'Deploy OpenTelemetry Collector' })),
+            redis.set('todo:3', JSON.stringify({ name: 'Configure sampling rule' })),
+            redis.set('todo:4', JSON.stringify({ name: 'You are OpenTelemetry master!' }))]
+        );
+        span.end();
+    })
+  
 }
 init();
