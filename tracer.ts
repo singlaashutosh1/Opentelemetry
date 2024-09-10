@@ -29,7 +29,12 @@ function start(serviceName: string) {
     const sdk = new NodeSDK({
         traceExporter,
         serviceName: serviceName,
-        instrumentations: [getNodeAutoInstrumentations()]
+        instrumentations: [getNodeAutoInstrumentations()],
+        //code for sending contextual info like pod id , vm , deployment id etc
+        autoDetectResources:true,
+        resource:new Resource({
+            'deploymentID':"1"
+        })
     });
 
 
