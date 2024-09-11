@@ -1,12 +1,14 @@
 import start from './tracer';
 start('auth-service');
-import express from 'express';
 import opentelemetry from "@opentelemetry/api";
+import express from 'express';
 const app = express();
 
 app.get('/auth',(req,res)=>{
-    res.json({username: 'Michael Haberman'})
-    opentelemetry.trace.getActiveSpan()?.setAttribute("Username","Michael Haberman'")
+    const baggage = opentelemetry.propagation.getActiveBaggage()
+    console.log('baggage',baggage)
+    res.json({username: 'Michael Haberman', userId:123})
+    opentelemetry.trace.getActiveSpan()?.setAttribute('userId',123);
 })
 
 app.listen(8080, () => {
